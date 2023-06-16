@@ -1,0 +1,92 @@
+bool bInCustomMenu = false;
+bool bGameStarted = false;
+string sPluginVersion = "YEPTREE";
+
+void RenderMenu()
+{
+	if (!bGameStarted and UI::MenuItem("\\$f80" + Icons::Th + "\\$fff Play \\$sROGUEMANIA", "", bGameStarted, bInCustomMenu)) {
+		bGameStarted = true;
+		bRMUI_Intro = true;
+		
+		UI::HideOverlay();
+	}
+}
+
+void Render()
+{
+	if (!bGameStarted) {
+		return;
+	}
+
+	RMUI_Render();
+}
+
+void Main()
+{
+	RMUI_Load();
+	FetchMapTags();
+	
+	auto app = GetApp();
+	
+	sPluginVersion = Meta::ExecutingPlugin().Version;
+	
+	while (true) {
+		bInCustomMenu = false;
+		for (uint i = 0; i < app.ActiveMenus.Length; i++) {
+			if (app.ActiveMenus[i].CurrentFrame.IdName == "FrameMenuCustom") {
+				bInCustomMenu = true;
+			}
+		}
+		
+		if (!bRMUI_IsInMenu && bGameStarted && !bMapLoading)
+		{
+			if (bInCustomMenu)
+			{
+				bRMUI_IsInMenu = true;
+				sCurrentTrackUID = "";
+				iCurrentTrackI = -1;				
+			}
+			else if(iCurrentTrackI > -1)
+			{
+				if (sCurrentTrackUID == GetCurrentTrackUID() && GetCurrentMapPBTime() > 0 && (GetCurrentMapPBTime() < rmgLoadedGame.tMaps[iCurrentTrackI].iBestTime || rmgLoadedGame.tMaps[iCurrentTrackI].iBestTime <= 0))
+				{
+					rmgLoadedGame.tMaps[iCurrentTrackI].iBestTime = GetCurrentMapPBTime();
+					if (rmgLoadedGame.tMaps[iCurrentTrackI].iBestTime <= rmgLoadedGame.tMaps[iCurrentTrackI].iTimeToBeat)
+					{
+						UserBeatMap();
+					}
+				}
+			}
+		}
+		
+		yield();
+	}	
+}
+
+void OnKeyPress(bool down, VirtualKey key)
+{
+	if (!bGameStarted || !bRMUI_IsInMenu || iRMUI_CurrentPage != RM_PAGE_GAME || !down) { return; }
+
+	if(key == VirtualKey::W)
+	{
+		rmgLoadedGame.iCameraPosY -= 1;
+	}
+	if(key == VirtualKey::S)
+	{
+		rmgLoadedGame.iCameraPosY += 1;
+	}	
+	if(key == VirtualKey::A)
+	{
+		rmgLoadedGame.iCameraPosX += 1;
+	}
+	if(key == VirtualKey::D)
+	{
+		rmgLoadedGame.iCameraPosX -= 1;
+	}	
+
+	if(key == VirtualKey::R)
+	{
+		rmgLoadedGame.iCameraPosX = -1;
+		rmgLoadedGame.iCameraPosY = 1;
+	}		
+}	

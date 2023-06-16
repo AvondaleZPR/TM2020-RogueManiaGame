@@ -1,0 +1,9 @@
+[meta]
+name = "ROGUEMANIA"
+author = "AvondaleZPR"
+category = "Game"
+
+version = "1.0.0"
+
+[script]
+timeout = 5000
