@@ -4,18 +4,41 @@ MapInfo@ preloadedMap;
 MapInfo@ mapInfo;
 bool isLoadingPreload = false;
 bool isLoadingMapInfo = false;
+int iMapsLoading = 0;
 
-void PreloadRandomMap(const string &in URL)
+void PreloadRandomMap(const string &in URL, int iMapI)
 {
+	startnew(PreloadRandomMapCoroutine, CoroutineURL(URL, iMapI));
+}
+
+class CoroutineURL 
+{
+	string URL;
+	int iMapI;
+
+	CoroutineURL(const string &in URL, int iMapI) 
+	{ 
+		this.URL = URL; 
+		this.iMapI = iMapI;
+	}
+}
+
+void PreloadRandomMapCoroutine(ref@ Data)
+{
+	string URL = cast<CoroutineURL>(Data).URL;
+	int iMapI = cast<CoroutineURL>(Data).iMapI;
 	//print(URL);
 
 	isLoadingPreload = true;
+	iMapsLoading+= 1;
+	
 	Json::Value res;
 	try {
 		res = GetAsync(URL)["results"][0];
 	} catch {
 		error("ManiaExchange API returned an error, retrying...");
-		PreloadRandomMap(URL);
+		PreloadRandomMapCoroutine(Data);
+		iMapsLoading = iMapsLoading - 1;
 		return;
 	}
 
@@ -23,43 +46,24 @@ void PreloadRandomMap(const string &in URL)
 
 	if (map is null){
 		warn("Map is null, retrying...");
-		PreloadRandomMap(URL);
+		PreloadRandomMapCoroutine(Data);
+		iMapsLoading = iMapsLoading - 1;
 		return;
 	}
 
 	if (map.AuthorTime >= 120000) {
 		warn("Map is too long, retrying...");
-		PreloadRandomMap(URL);
+		PreloadRandomMapCoroutine(Data);
+		iMapsLoading = iMapsLoading - 1;
 		return;
 	} 
 
 	isLoadingPreload = false;
-	@preloadedMap = map;
-}
-
-void GetMapInfo(int iTmxId)
-{
-	string URL = "https://trackmania.exchange/api/maps/get_map_info/id/" + iTmxId;
+	iMapsLoading = iMapsLoading - 1;
+	print("map loaded, maps left: " + iMapsLoading);
 	
-	isLoadingMapInfo = true;
-	Json::Value res;
-	try {
-		res = GetAsync(URL)["results"][0];
-	} catch {
-		error("ManiaExchange API returned an error, retrying...");
-		GetMapInfo(iTmxId);
-		return;
-	}
-
-	MapInfo@ map = MapInfo(res);
-
-	if (map is null){
-		error("Map is null.");
-		return;
-	}
-
-	isLoadingMapInfo = false;
-	@mapInfo = map;	
+	@preloadedMap = map;
+	rmgLoadedGame.tMaps[iMapI].LoadMapInfo(map);
 }
 
 string CreateQueryURL(int iMapPackID = -1, const string &in sMapTags = "")
@@ -84,6 +88,11 @@ string CreateQueryURL(int iMapPackID = -1, const string &in sMapTags = "")
 	return url;
 }
 
+string CreateQueryURLForTmxID(int iTmxId)
+{
+	return "https://trackmania.exchange/api/maps/get_map_info/id/" + iTmxId;
+}
+
 Net::HttpRequest@ Get(const string &in url)
 {
 	auto ret = Net::HttpRequest();
@@ -96,8 +105,9 @@ Net::HttpRequest@ Get(const string &in url)
 Json::Value GetAsync(const string &in url)
 {
 	auto req = Get(url);
+	print(url);
 	while (!req.Finished()) {
-		//yield();
+		yield();
 	}
 	string res = req.String();
 	
@@ -222,7 +232,7 @@ class MapInfo
 			json["ExeBuild"] = ExeBuild;
 			json["UploadedAt"] = UploadedAt;
 			json["UpdatedAt"] = UpdatedAt;
-			json["PlayedAt"] = PlayedAt;
+			//json["PlayedAt"] = PlayedAt;
 			json["Name"] = Name;
 			json["GbxMapName"] = GbxMapName;
 			json["Comments"] = Comments;
@@ -259,6 +269,8 @@ class MapTag
 	int ID;
 	string Name;
 	string Color;
+	
+	MapTag() {}
 
 	MapTag(const Json::Value &in json)
 	{
@@ -270,6 +282,15 @@ class MapTag
 			ID = json["ID"];
 			Name = json["Name"];
 		}
+	}
+	
+	Json::Value ToJson()
+	{
+		Json::Value json = Json::Object();
+		json["ID"] = ID;
+		json["Name"] = Name;
+		json["Color"] = Color;
+		return json;
 	}
 }
 

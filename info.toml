@@ -3,7 +3,8 @@ name = "ROGUEMANIA"
 author = "AvondaleZPR"
 category = "Game"
 
+siteid = 398
 version = "1.0.0"
 
 [script]
-timeout = 5000
+timeout = 30000

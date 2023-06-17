@@ -4,7 +4,13 @@ string sPluginVersion = "YEPTREE";
 
 void RenderMenu()
 {
-	if (!bGameStarted and UI::MenuItem("\\$f80" + Icons::Th + "\\$fff Play \\$sROGUEMANIA", "", bGameStarted, bInCustomMenu)) {
+	if (!bGameStarted and UI::MenuItem("\\$f80" + Icons::Sitemap + "\\$fff Play \\$sROGUEMANIA", "", bGameStarted, bInCustomMenu)) {
+		if (!Permissions::PlayLocalMap())
+		{
+			UI::ShowNotification("ROGUEMANIA", "You need atleast a standard access to play RogueMania Sadge", vec4(0.7, 0.0, 0.0, 1.0), 5000);	
+			return;
+		}
+		
 		bGameStarted = true;
 		bRMUI_Intro = true;
 		
