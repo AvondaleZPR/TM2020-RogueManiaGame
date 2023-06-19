@@ -83,8 +83,13 @@ class RM_Map
 		this.bBeaten = json["bBeaten"];
 		this.bClaimed = json["bClaimed"];		
 	
-		iMapPackId = json["iMapPackId"];
-		sMapTags = json["sMapTags"];	
+		this.iMapPackId = json["iMapPackId"];
+		this.sMapTags = json["sMapTags"];	
+		
+		if(json["iTmxId"] !is null)
+		{
+			this.iTmxId = json["iTmxId"];
+		}
 	
 		this.iRMUI_X = json["iRMUI_X"];
 		this.iRMUI_Y = json["iRMUI_Y"];
@@ -133,6 +138,7 @@ class RM_Map
 		}
 		json["iMapPackId"] = iMapPackId;
 		json["sMapTags"] = sMapTags;	
+		json["iTmxId"] = iTmxId;
 	
 		json["iRMUI_X"] = iRMUI_X;
 		json["iRMUI_Y"] = iRMUI_Y;

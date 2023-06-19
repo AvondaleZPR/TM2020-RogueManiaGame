@@ -44,15 +44,20 @@ void RMUI_Render()
 {
 	if (!bRMUI_IsInMenu) {return;}
 
+	int iWidth = Draw::GetWidth();
+	int iHeight = Draw::GetHeight();
+	int iWidthDifference = (1920 - Draw::GetWidth())/2;
+	int iHeightDifference  = (1080 - Draw::GetHeight())/2;
+
 	UI::PushStyleColor(UI::Col::WindowBg, vec4(0, 0, 0, 0));
 	UI::SetNextWindowPos(0, 0);
-	UI::SetNextWindowSize(1920, 1080);
+	UI::SetNextWindowSize(iWidth, iHeight);
 	UI::Begin("NoMenuClicks", UI::WindowFlags::NoTitleBar + UI::WindowFlags::NoResize + UI::WindowFlags::NoMove + UI::WindowFlags::NoSavedSettings + UI::WindowFlags::NoBringToFrontOnFocus);
 	UI::End();
 	UI::PopStyleColor();	
 
 	nvg::BeginPath();
-	nvg::RoundedRect(0, 0, 1920, 1080, 0);
+	nvg::RoundedRect(0, 0, iWidth, iHeight, 0);
 	nvg::FillColor(vec4(0,0,0,255));
 	nvg::Fill();
 	nvg::ClosePath();
@@ -62,7 +67,7 @@ void RMUI_Render()
 		iRMUI_IntroTime = iRMUI_IntroTime + 1.0;
 	
 		nvg::BeginPath();
-		nvg::FillPaint(nvg::TexturePattern(vec2(500, 300), vec2(900, 450), 0.0, tIntro, 1.0 - (iRMUI_IntroTime / 1000) * 2));
+		nvg::FillPaint(nvg::TexturePattern(vec2(500-iWidthDifference/2, 300-iHeightDifference/2), vec2(900-iWidthDifference, 450-iHeightDifference), 0.0, tIntro, 1.0 - (iRMUI_IntroTime / 1000) * 2));
 		nvg::Fill();
 		nvg::ClosePath();		
 		
@@ -77,7 +82,7 @@ void RMUI_Render()
 	if (iRMUI_CurrentPage != RM_PAGE_GAME && iRMUI_CurrentPage != RM_PAGE_DEV && iRMUI_CurrentPage != RM_PAGE_STORE && iRMUI_CurrentPage != RM_PAGE_STATS) // Logo
 	{
 		nvg::BeginPath();
-		nvg::FillPaint(nvg::TexturePattern(vec2(660, 0), vec2(600, 300), 0.0, tLogo, 255.0));
+		nvg::FillPaint(nvg::TexturePattern(vec2(660-iWidthDifference/2, 0), vec2(600-iWidthDifference, 300-iHeightDifference), 0.0, tLogo, 255.0));
 		nvg::Fill();
 		nvg::ClosePath();
 	}
@@ -86,7 +91,7 @@ void RMUI_Render()
 	{
 		UI::PushStyleColor(UI::Col::WindowBg, vec4(0, 0, 0, 0));
 		UI::PushFont(fButton);	
-		UI::SetNextWindowPos(1620, 0, UI::Cond::Always);
+		UI::SetNextWindowPos(iWidth-300, 0, UI::Cond::Always);
 		UI::SetNextWindowSize(300, 500);
 		UI::Begin("Consumables", UI::WindowFlags::NoTitleBar + UI::WindowFlags::NoResize + UI::WindowFlags::NoMove + UI::WindowFlags::NoSavedSettings);
 		UI::TextWrapped("Cash: $" + rmgLoadedGame.iCash);
@@ -102,8 +107,8 @@ void RMUI_Render()
 
 	UI::PushStyleColor(UI::Col::WindowBg, vec4(0, 0, 0, 0));
 	UI::PushFont(fButton);
-	UI::SetNextWindowPos(800, 300);
-	UI::SetNextWindowSize(1000, 800);
+	UI::SetNextWindowPos(800-iWidthDifference, 300-iHeightDifference);
+	UI::SetNextWindowSize(1000-iWidthDifference, 800-iHeightDifference);
 	UI::Begin("MenuButtons", UI::WindowFlags::NoTitleBar + UI::WindowFlags::NoResize + UI::WindowFlags::NoMove + UI::WindowFlags::NoSavedSettings);
 	if (iRMUI_CurrentPage == RM_PAGE_MAIN) 		{ RMUI_RenderMainPage(); }
 	if (iRMUI_CurrentPage == RM_PAGE_LOAD) 		{ RMUI_RenderLoadPage(); }
@@ -377,7 +382,7 @@ void RMUI_RenderGamePage() //ns
 	
 	UI::PushStyleColor(UI::Col::WindowBg, vec4(0, 0, 0, 0));
 	UI::PushFont(fButton);
-	UI::SetNextWindowPos(0, 780, UI::Cond::Always);
+	UI::SetNextWindowPos(0, Draw::GetHeight()-300, UI::Cond::Always);
 	UI::SetNextWindowSize(180, 300);
 	UI::Begin("GameButtons", UI::WindowFlags::NoTitleBar + UI::WindowFlags::NoResize + UI::WindowFlags::NoMove + UI::WindowFlags::NoSavedSettings);
 	if (UI::ButtonColored("Store", 0, 0, 0, vec2(170,80)))
@@ -411,10 +416,11 @@ void RMUI_RenderLoadPage()
 	{
 		for(int i = 0; i < tLoadedSaveGames.Length; i++)
 		{
-			if (RMUI_RenderButton(tLoadedSaveGames[i]))
+			if (!tLoadedSaveGamesPaths[i].EndsWith("_BACKUP") && RMUI_RenderButton(tLoadedSaveGames[i]))
 			{
 				SG_Load(tLoadedSaveGamesPaths[i]);
 				iRMUI_CurrentPage = RM_PAGE_GAME;
+				SG_Save(rmgLoadedGame, true);
 			}	
 		}
 	}
@@ -498,9 +504,14 @@ void RMUI_RenderSavePage()
 
 void RMUI_RenderStorePage() //ns
 {
+	int iWidth = Draw::GetWidth();
+	int iHeight = Draw::GetHeight();
+	int iWidthDifference = (1920 - Draw::GetWidth())/2;
+	int iHeightDifference  = (1080 - Draw::GetHeight())/2;
+
 	UI::PushStyleColor(UI::Col::WindowBg, vec4(0, 0, 0, 0));
 	UI::PushFont(fButton);
-	UI::SetNextWindowPos(560, 395);
+	UI::SetNextWindowPos(560-iWidthDifference, 395-iHeightDifference);
 	UI::SetNextWindowSize(800, 270);
 	UI::Begin("StoreItems", UI::WindowFlags::NoTitleBar + UI::WindowFlags::NoResize + UI::WindowFlags::NoMove + UI::WindowFlags::NoSavedSettings);		
 	if (UI::ButtonColored("Reroll = $" + STORE_REROLL_PRICE, 0, 0, 0, vec2(400,250)) && rmgLoadedGame.iCash >= STORE_REROLL_PRICE)
@@ -515,7 +526,7 @@ void RMUI_RenderStorePage() //ns
 		rmgLoadedGame.iSkips++;
 	}		
 	UI::End();	
-	UI::SetNextWindowPos(0, 980);
+	UI::SetNextWindowPos(0, 980-iHeightDifference*2);
 	UI::SetNextWindowSize(160, 100);
 	UI::Begin("StoreBackButton", UI::WindowFlags::NoTitleBar + UI::WindowFlags::NoResize + UI::WindowFlags::NoMove + UI::WindowFlags::NoSavedSettings);		
 	if (UI::ButtonColored("Back", 0, 0, 0, vec2(150,80)))

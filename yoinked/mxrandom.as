@@ -68,12 +68,17 @@ void PreloadRandomMapCoroutine(ref@ Data)
 
 string CreateQueryURL(int iMapPackID = -1, const string &in sMapTags = "")
 {
-	string url = "https://trackmania.exchange/mapsearch2/search?api=on&random=1&etags=23,37,40&tagsinc=0";
+	string url = "https://trackmania.exchange/mapsearch2/search?api=on&random=1&tagsinc=0";
 
 	if(sMapTags != "") 
 	{
 		url += "&tags=" + sMapTags;
 	}	
+	else
+	{
+		url += "&etags=4,10,23,37,40";
+	}
+	
 	if (iMapPackID > 0) 
 	{
 		url += "&mid=" + iMapPackID;
@@ -105,7 +110,7 @@ Net::HttpRequest@ Get(const string &in url)
 Json::Value GetAsync(const string &in url)
 {
 	auto req = Get(url);
-	print(url);
+	//print(url);
 	while (!req.Finished()) {
 		yield();
 	}
@@ -306,7 +311,7 @@ void FetchMapTags()
 	try {
 		for (uint i = 0; i < resNet.Length; i++)
 		{
-			if (resNet[i]["Name"] != "FlagRush" && resNet[i]["Name"] != "Puzzle" && resNet[i]["Name"] != "Royal")
+			if (resNet[i]["Name"] != "FlagRush" && resNet[i]["Name"] != "Puzzle" && resNet[i]["Name"] != "Royal" && resNet[i]["Name"] != "Arena")
 			{
 				int tagID = resNet[i]["ID"];
 				string tagName = resNet[i]["Name"];

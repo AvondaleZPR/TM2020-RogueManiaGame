@@ -1,6 +1,6 @@
 array<string> tLoadedSaveGames;
 array<string> tLoadedSaveGamesPaths;
-int iXddKey = 69;
+int iXddKey = 10;
 
 void SG_LoadSaveGames()
 {
@@ -16,12 +16,15 @@ void SG_LoadSaveGames()
 	}
 }
 
-void SG_Save(RM_Game@ rmgGame)
+void SG_Save(RM_Game@ rmgGame, bool bBackUp = false)
 {
 	if(iMapsLoading > 0) {return;}
 
 	string sJson = Json::Write(rmgGame.ToJson());
-	IO::File fFile(IO::FromStorageFolder(rmgGame.sName + ".ROGUEMANIA"));
+	string sFileName = rmgGame.sName + ".ROGUEMANIA";
+	if (bBackUp) {sFileName += "_BACKUP";}
+	
+	IO::File fFile(IO::FromStorageFolder(sFileName));
 	fFile.Open(IO::FileMode::Write);
 	fFile.WriteLine(SG_EncryptXDD(tostring(sJson), iXddKey));
 	fFile.Close();
@@ -30,7 +33,7 @@ void SG_Save(RM_Game@ rmgGame)
 void SG_Load(const string &in sPath)
 {
 	IO::File fFile(sPath);
-	fFile.Open(IO::FileMode::Read);
+	fFile.Open(IO::FileMode::Read);	
 	@rmgLoadedGame = RM_Game(Json::Parse(SG_DecryptXDD(fFile.ReadToEnd(), iXddKey)));
 	fFile.Close();
 }
@@ -41,7 +44,14 @@ string SG_EncryptXDD(const string &in sString, int iKey)
 
 	for(int i = 0; i < sString.Length; i++)
 	{
-		sNewString[i] = sNewString[i] + iKey;
+		if(i % 2 == 0)
+		{
+			sNewString[i] = sNewString[i] + iKey;
+		}
+		else
+		{
+			sNewString[i] = sNewString[i] - iKey;
+		}
 	}
 	
 	return sNewString;
@@ -53,7 +63,14 @@ string SG_DecryptXDD(const string &in sString, int iKey)
 
 	for(int i = 0; i < sString.Length-1; i++)
 	{
-		sNewString[i] = sNewString[i] - iKey;
+		if(i % 2 == 0)
+		{
+			sNewString[i] = sNewString[i] - iKey;
+		}
+		else
+		{
+			sNewString[i] = sNewString[i] + iKey;
+		}
 	}
 	
 	return sNewString;
