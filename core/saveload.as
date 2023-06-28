@@ -4,15 +4,12 @@ int iXddKey = 10;
 
 void SG_LoadSaveGames()
 {
-	if (IO::FolderExists(IO::FromStorageFolder("")))
+	tLoadedSaveGamesPaths = IO::IndexFolder(IO::FromStorageFolder(""), true);
+	tLoadedSaveGames = tLoadedSaveGamesPaths;
+	for(int i = 0; i < tLoadedSaveGamesPaths.Length; i++)
 	{
-		tLoadedSaveGamesPaths = IO::IndexFolder(IO::FromStorageFolder(""), true);
-		tLoadedSaveGames = tLoadedSaveGamesPaths;
-		for(int i = 0; i < tLoadedSaveGamesPaths.Length; i++)
-		{
-			string[]@ split = tLoadedSaveGamesPaths[i].Split("/");
-			tLoadedSaveGames[i] = split[split.Length-1].Split(".")[0];
-		}
+		string[]@ split = tLoadedSaveGamesPaths[i].Split("/");
+		tLoadedSaveGames[i] = split[split.Length-1].Split(".")[0];
 	}
 }
 

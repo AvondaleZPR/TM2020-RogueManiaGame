@@ -47,9 +47,18 @@ class RM_Map
 		
 		if (iMapType == MAP_CELL_TYPE_CHOICE)
 		{
-			RandomTag1 = RandomMapTag();
-			RandomTag2 = RandomMapTag();
-			RandomTag3 = RandomMapTag();
+			if (rmgLoadedGame.iGameMode == GAMEMODE_KACKY)
+			{
+				RandomTag1 = FindMapTagByName("Kacky");
+				RandomTag2 = FindMapTagByName("Trial");
+				RandomTag3 = FindMapTagByName("RPG");
+			}
+			else
+			{
+				RandomTag1 = RandomMapTag();
+				RandomTag2 = RandomMapTag();
+				RandomTag3 = RandomMapTag();
+			}
 		}
 		
 		if (iMapType == MAP_CELL_TYPE_CASINO)

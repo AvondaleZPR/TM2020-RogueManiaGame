@@ -7,6 +7,7 @@ const int RM_PAGE_DEV 		= 6;
 const int RM_PAGE_SAVE		= 7;
 const int RM_PAGE_STORE		= 8;
 const int RM_PAGE_STATS		= 9;
+const int RM_PAGE_GAMEMODE	= 10;
 
 int iRMUI_CurrentPage = RM_PAGE_MAIN;
 int iRMUI_DevModeCheck = 0;
@@ -26,7 +27,8 @@ nvg::Texture@ tLogo;
 nvg::Texture@ tMapBg;
 
 string sSaveGameName = "SaveGame";
-int iDifficulty = 0;
+int iRMUI_Difficulty = 0;
+int iRMUI_GameMode = GAMEMODE_REGULAR;
 
 void RMUI_Load()
 {
@@ -53,6 +55,7 @@ void RMUI_Render()
 	UI::SetNextWindowPos(0, 0);
 	UI::SetNextWindowSize(iWidth, iHeight);
 	UI::Begin("NoMenuClicks", UI::WindowFlags::NoTitleBar + UI::WindowFlags::NoResize + UI::WindowFlags::NoMove + UI::WindowFlags::NoSavedSettings + UI::WindowFlags::NoBringToFrontOnFocus);
+	//bLMBPressed = UI::InvisibleButton("MouseMovement", vec2(iWidth, iHeight-50), UI::ButtonFlags::MouseButtonLeft);
 	UI::End();
 	UI::PopStyleColor();	
 
@@ -117,6 +120,7 @@ void RMUI_Render()
 	if (iRMUI_CurrentPage == RM_PAGE_DEV) 		{ RMUI_RenderDevPage(); }
 	if (iRMUI_CurrentPage == RM_PAGE_SAVE) 		{ RMUI_RenderSavePage(); }
 	if (iRMUI_CurrentPage == RM_PAGE_STATS) 	{ RMUI_RenderStatsPage(); }	
+	if (iRMUI_CurrentPage == RM_PAGE_GAMEMODE) 	{ RMUI_RenderGamemodePage(); }	
 	UI::End();
 	UI::PopFont();
 	UI::PopStyleColor();
@@ -138,7 +142,7 @@ void RMUI_RenderMainPage()
 {
 	if (RMUI_RenderButton("New Game"))
 	{
-		iRMUI_CurrentPage = RM_PAGE_SETTINGS;
+		iRMUI_CurrentPage = RM_PAGE_GAMEMODE;
 	}
 	
 	if (RMUI_RenderButton("Load"))
@@ -452,21 +456,21 @@ void RMUI_RenderSettingsPage()
 	UI::PushStyleColor(UI::Col::Text, vec4(0.8, 0.5, 0.2, 1.0));
 	if (RMUI_RenderButton("Easy"))
 	{
-		iDifficulty = 1;
+		iRMUI_Difficulty = 1;
 		iRMUI_CurrentPage = RM_PAGE_SAVE;
 	}
 	UI::PopStyleColor();
 	UI::PushStyleColor(UI::Col::Text, vec4(1.0, 1.0, 0.2, 1.0));
 	if (RMUI_RenderButton("Normal"))
 	{
-		iDifficulty = 2;
+		iRMUI_Difficulty = 2;
 		iRMUI_CurrentPage = RM_PAGE_SAVE;
 	}	
 	UI::PopStyleColor();
 	UI::PushStyleColor(UI::Col::Text, vec4(0.0, 0.7, 0.1, 1.0));	
 	if (RMUI_RenderButton("Hard"))
 	{
-		iDifficulty = 3;
+		iRMUI_Difficulty = 3;
 		iRMUI_CurrentPage = RM_PAGE_SAVE;
 	}	
 	UI::PopStyleColor();
@@ -549,9 +553,44 @@ void RMUI_RenderStatsPage()
 	RMUI_RenderText("Casino Money Lost: $" + rmgLoadedGame.iStatsCasinoLost);	
 	RMUI_RenderText("Rerolls Used: " + rmgLoadedGame.iStatsRerollsUsed);	
 	RMUI_RenderText("Skips Used: " + rmgLoadedGame.iStatsSkipsUsed);
+	
+	if(rmgLoadedGame.iGameMode == GAMEMODE_REGULAR)
+	{
+		RMUI_RenderText("Game Mode: Regular");
+	}
+	else if(rmgLoadedGame.iGameMode == GAMEMODE_KACKY)
+	{
+		RMUI_RenderText("Game Mode: Kacky");
+	}
+	else if(rmgLoadedGame.iGameMode == GAMEMODE_CAMPAIGN)
+	{
+		RMUI_RenderText("Game Mode: Nadeo Campaign");
+	}	
 
 	if (RMUI_RenderButton("Back"))
 	{
 		iRMUI_CurrentPage = RM_PAGE_GAME;
+	}		
+}
+
+void RMUI_RenderGamemodePage()
+{
+	RMUI_RenderText("GameMode:");
+
+	if (RMUI_RenderButton("Regular"))
+	{
+		iRMUI_GameMode = GAMEMODE_REGULAR;
+		iRMUI_CurrentPage = RM_PAGE_SETTINGS;
+	}
+	UI::PushStyleColor(UI::Col::Text, vec4(0.9, 0.0, 0.0, 1.0));
+	if (RMUI_RenderButton("Kacky"))
+	{
+		iRMUI_GameMode = GAMEMODE_KACKY;
+		iRMUI_CurrentPage = RM_PAGE_SETTINGS;
+	}	
+	UI::PopStyleColor();
+	if (RMUI_RenderButton("Back"))
+	{
+		iRMUI_CurrentPage = RM_PAGE_MAIN;
 	}		
 }

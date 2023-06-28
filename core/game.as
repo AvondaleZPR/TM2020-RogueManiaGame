@@ -5,11 +5,16 @@ int iCurrentTrackI = -1;
 const int STORE_REROLL_PRICE = 250;
 const int STORE_SKIP_PRICE = 1250;
 
+const int GAMEMODE_REGULAR = 1;
+const int GAMEMODE_KACKY = 2;
+const int GAMEMODE_CAMPAIGN = 3;
+
 class RM_Game 
 {
 	string sName;
 	int iDifficulty;
 	array<RM_Map@> tMaps;
+	int iGameMode;
 	
 	int iCameraPosX;
 	int iCameraPosY;
@@ -27,10 +32,11 @@ class RM_Game
 	int iStatsSkipsUsed = 0;
 	int iStatsRerollsUsed = 0;
 	
-	RM_Game (const string &in sName, int iDifficulty) 
+	RM_Game (const string &in sName, int iDifficulty, int iGameMode = GAMEMODE_REGULAR) 
 	{ 
 		this.sName = sName; 
 		this.iDifficulty = iDifficulty; 
+		this.iGameMode = iGameMode;
 		
 		iCameraPosX = -1;
 		iCameraPosY = 1;
@@ -43,6 +49,15 @@ class RM_Game
 	{
 		this.sName = json["sName"];
 		this.iDifficulty = json["iDifficulty"];
+
+		if (json["iGameMode"] !is null)
+		{
+			iGameMode = json["iGameMode"];
+		}
+		else
+		{
+			iGameMode = GAMEMODE_REGULAR;
+		}
 
 		for(int i = 0; i < json["tMaps"]; i++)
 		{
@@ -81,6 +96,7 @@ class RM_Game
 	
 		json["sName"] = sName;
 		json["iDifficulty"] = iDifficulty;
+		json["iGameMode"] = iGameMode;
 	
 		json["tMaps"] = tMaps.Length;
 		for(int i = 0; i < tMaps.Length; i++)
@@ -111,14 +127,21 @@ class RM_Game
 //-----------------------------------------------------------------------------------------------------------------------------------
 void UserStartNewGame()
 {
-	@rmgLoadedGame = RM_Game(sSaveGameName, iDifficulty);
+	@rmgLoadedGame = RM_Game(sSaveGameName, iRMUI_Difficulty, iRMUI_GameMode);
 	
 	if (sSaveGameName == "ineedcash")
 	{
 		rmgLoadedGame.AddCash(99999);
 	}
 	
-	AddNewRandomMap(0, 0, 100, 40, "");
+	if (rmgLoadedGame.iGameMode == GAMEMODE_KACKY)
+	{
+		AddNewRandomMap(0, 0, 100);
+	}
+	else
+	{
+		AddNewRandomMap(0, 0, 100, 40, "");
+	}
 	
 	SG_Save(@rmgLoadedGame);
 }
@@ -220,7 +243,7 @@ void UserPlayedCasino(int iMapI)
 }
 //-----------------------------------------------------------------------------------------------------------------------------------
 
-bool AddNewRandomMap(int iX, int iY, int iReward = 0, int iMapPackId = -1, const string &in sTags = "", bool bCanBeARandomDeadEndType = false)
+bool AddNewRandomMap(int iX, int iY, int iReward = 0, int iMapPackId = -1, string &in sTags = "", bool bCanBeARandomDeadEndType = false)
 {
 	if (MapExistsAtCoordinates(iX, iY)) { return false; }
 
@@ -243,6 +266,18 @@ bool AddNewRandomMap(int iX, int iY, int iReward = 0, int iMapPackId = -1, const
 		if (Math::Rand(0,1) == 1)
 		{
 			iMapType = MAP_CELL_TYPE_CHOICE;
+		}
+	}
+	
+	if (rmgLoadedGame.iGameMode == GAMEMODE_KACKY)
+	{
+		if (Math::Rand(0,1) == 0)
+		{
+			sTags = "23"; //kacky
+		}
+		else
+		{
+			sTags = "10"; //trial
 		}
 	}
 

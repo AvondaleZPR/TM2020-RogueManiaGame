@@ -74,3 +74,16 @@ MapTag@ RandomMapTag()
 {
 	return @m_mapTags[Math::Rand(0, m_mapTags.Length-1)];
 }
+
+MapTag@ FindMapTagByName(const string &in sName)
+{
+	for(int i = 0; i < m_mapTags.Length; i++)
+	{
+		if (m_mapTags[i].Name == sName)
+		{
+			return m_mapTags[i];
+		}		
+	}
+	
+	return MapTag();
+}

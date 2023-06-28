@@ -1,6 +1,7 @@
 bool bInCustomMenu = false;
 bool bGameStarted = false;
 string sPluginVersion = "YEPTREE";
+bool bSkipTick = false;
 
 void RenderMenu()
 {
@@ -62,6 +63,50 @@ void Main()
 						UserBeatMap();
 					}
 				}
+			}
+		}
+		
+		yield();
+		
+		if(bGameStarted && bRMUI_IsInMenu && iRMUI_CurrentPage == RM_PAGE_GAME)
+		{	
+		
+			if(bSkipTick)
+			{
+				bSkipTick = false;
+			}
+			else
+			{
+				vec2 vMousePos = UI::GetMousePos();
+				int iWidth = Draw::GetWidth();
+				int iHeight = Draw::GetHeight();
+			
+				if(vMousePos.x < 0 && vMousePos.y < 0)
+				{
+					// alt tab
+				}
+				else
+				{
+					if(vMousePos.x < (iWidth/100))
+					{
+						rmgLoadedGame.iCameraPosX += 1;
+					}
+					else if(vMousePos.x > iWidth - (iWidth/100))
+					{
+						rmgLoadedGame.iCameraPosX -= 1;
+					}
+					
+					if(vMousePos.y < (iHeight/100))
+					{
+						rmgLoadedGame.iCameraPosY -= 1;
+					}
+					else if(vMousePos.y > iHeight - (iHeight/100))
+					{
+						rmgLoadedGame.iCameraPosY += 1;
+					}
+				}				
+				
+				bSkipTick = true;
 			}
 		}
 		
