@@ -87,3 +87,8 @@ MapTag@ FindMapTagByName(const string &in sName)
 	
 	return MapTag();
 }
+
+float GetARScale(float fW, float fH, float fM = 0.5)
+{
+	return Math::Pow(fW/1920, 1.0 - fM) * Math::Pow(fH/1080, fM);
+}

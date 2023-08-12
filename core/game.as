@@ -4,6 +4,7 @@ int iCurrentTrackI = -1;
 
 const int STORE_REROLL_PRICE = 250;
 const int STORE_SKIP_PRICE = 1250;
+const int STORE_VICTORY_PRICE = 25000;
 
 const int GAMEMODE_REGULAR = 1;
 const int GAMEMODE_KACKY = 2;
@@ -15,6 +16,7 @@ class RM_Game
 	int iDifficulty;
 	array<RM_Map@> tMaps;
 	int iGameMode;
+	bool bGameBeaten = false;
 	
 	int iCameraPosX;
 	int iCameraPosY;
@@ -49,6 +51,11 @@ class RM_Game
 	{
 		this.sName = json["sName"];
 		this.iDifficulty = json["iDifficulty"];
+		
+		if (json["bGameBeaten"] !is null)
+		{
+			this.bGameBeaten = json["bGameBeaten"];
+		}
 
 		if (json["iGameMode"] !is null)
 		{
@@ -97,6 +104,7 @@ class RM_Game
 		json["sName"] = sName;
 		json["iDifficulty"] = iDifficulty;
 		json["iGameMode"] = iGameMode;
+		json["bGameBeaten"] = bGameBeaten;
 	
 		json["tMaps"] = tMaps.Length;
 		for(int i = 0; i < tMaps.Length; i++)
