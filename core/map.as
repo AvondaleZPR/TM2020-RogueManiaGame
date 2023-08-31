@@ -87,7 +87,7 @@ class RM_Map
 		bLoaded = true;
 	}
 	
-	RM_Map(const Json::Value &in json)
+	RM_Map(const Json::Value &in json, int iMapI)
 	{
 		this.bBeaten = json["bBeaten"];
 		this.bClaimed = json["bClaimed"];		
@@ -119,7 +119,7 @@ class RM_Map
 			if (json["miMapInfo"] is null)
 			{
 				bLoaded = false;
-				RequestMapPreload(this);
+				RequestMapPreload(this, iMapI);
 			}
 			else
 			{

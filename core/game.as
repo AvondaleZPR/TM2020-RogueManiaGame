@@ -68,7 +68,7 @@ class RM_Game
 
 		for(int i = 0; i < json["tMaps"]; i++)
 		{
-			tMaps.InsertLast(RM_Map(json["tMap" + i]));
+			tMaps.InsertLast(RM_Map(json["tMap" + i], i));
 		}
 		
 		this.iCameraPosX = json["iCameraPosX"];
@@ -305,18 +305,8 @@ void ChangeRandomMap(int iMapI, int iMapPackId = -1, const string &in sTags = ""
 	PreloadRandomMap(CreateQueryURL(iMapPackId, sTags), iMapI);
 }
 
-void RequestMapPreload(RM_Map@ rmMap)
+void RequestMapPreload(RM_Map@ rmMap, int iMapI)
 {
-	int iMapI;
-	for(int i = 0; i < rmgLoadedGame.tMaps.Length; i++)
-	{
-		if(rmMap.iRMUI_X == rmgLoadedGame.tMaps[i].iRMUI_X && rmMap.iRMUI_Y == rmgLoadedGame.tMaps[i].iRMUI_Y)
-		{
-			iMapI = i;
-			break;
-		}
-	}
-
 	if(rmMap.iTmxId > 0)
 	{
 		PreloadRandomMap(CreateQueryURLForTmxID(rmMap.iTmxId), iMapI);
