@@ -28,6 +28,10 @@ nvg::Texture@ tIntro;
 nvg::Texture@ tLogo;
 nvg::Texture@ tMapBg;
 Audio::Sample@ sVictorySong;
+Audio::Sample@ sClick;
+Audio::Sample@ sClaim;
+Audio::Sample@ sReward;
+Audio::Sample@ sSkip;
 
 string sSaveGameName = "SaveGame";
 int iRMUI_Difficulty = 0;
@@ -48,6 +52,10 @@ void RMUI_Load()
 	@tLogo = nvg::LoadTexture("data/images/logo2.png", 0);
 	//@tMapBg = nvg::LoadTexture("data/images/mapbg.png", 0);
 	@sVictorySong = Audio::LoadSample("data/sound/victory.wav");
+	@sClick = Audio::LoadSample("data/sound/click.wav");
+	@sClaim = Audio::LoadSample("data/sound/claim.wav");
+	@sReward = Audio::LoadSample("data/sound/reward.wav");
+	@sSkip = Audio::LoadSample("data/sound/skip.wav");
 }
 
 void RMUI_Render()
@@ -136,7 +144,13 @@ void RMUI_Render()
 
 bool RMUI_RenderButton(const string &in sText)
 {
-	return UI::ButtonColored(sText, 0, 0, 0, vec2(300*fRMUI_ARScale,150*fRMUI_ARScale));
+	if (UI::ButtonColored(sText, 0, 0, 0, vec2(300*fRMUI_ARScale,150*fRMUI_ARScale)))
+	{
+		Audio::Play(sClick);
+		return true;
+	}
+	
+	return false;
 }
 
 void RMUI_RenderText(const string &in sText)
@@ -247,11 +261,11 @@ void RMUI_RenderGamePage() //ns
 			{
 				UserSelectMapType(i, rmgLoadedGame.tMaps[i].RandomTag1.ID);
 			}
-			if (UI::ButtonColored(rmgLoadedGame.tMaps[i].RandomTag2.Name, 0.35, 0.7, 1.0))
+			else if (UI::ButtonColored(rmgLoadedGame.tMaps[i].RandomTag2.Name, 0.35, 0.7, 1.0))
 			{
 				UserSelectMapType(i, rmgLoadedGame.tMaps[i].RandomTag2.ID);
 			}
-			if (UI::ButtonColored(rmgLoadedGame.tMaps[i].RandomTag3.Name, 0.35, 0.7, 1.0))
+			else if (UI::ButtonColored(rmgLoadedGame.tMaps[i].RandomTag3.Name, 0.35, 0.7, 1.0))
 			{
 				UserSelectMapType(i, rmgLoadedGame.tMaps[i].RandomTag3.ID);
 			}			
@@ -292,6 +306,7 @@ void RMUI_RenderGamePage() //ns
 				{
 					if (UI::ButtonColored("Play", 0.35, 0.7, 0.5) && iMapsLoading < 1)
 					{
+						Audio::Play(sClick);
 						UserPlayAMap(i);
 					}
 				}
@@ -299,6 +314,7 @@ void RMUI_RenderGamePage() //ns
 				{
 					if (UI::ButtonColored("Claim", 0.35, 0.8, 0.5))
 					{
+						Audio::Play(sClaim);
 						UserClaimAMap(i);
 					}			
 				}
@@ -307,11 +323,13 @@ void RMUI_RenderGamePage() //ns
 					UI::SameLine();		
 					if (UI::ButtonColored("Reroll", 0.8, 0.7, 1.0) && rmgLoadedGame.iRerolls > 0)
 					{
+						Audio::Play(sSkip);
 						UserRerollMap(i);
 					}		
 					UI::SameLine();		
 					if (UI::ButtonColored("Skip", 0, 0.7, 1.0) && rmgLoadedGame.iSkips > 0)
 					{
+						Audio::Play(sSkip);
 						UserSkipMap(i);
 					}	
 				}
@@ -363,6 +381,7 @@ void RMUI_RenderGamePage() //ns
 					{
 						if (UI::ButtonColored("Collect", 0.35, 0.8, 0.5))
 						{
+							Audio::Play(sReward);
 							UserLootedChest(i);
 						}	
 					}
@@ -399,14 +418,17 @@ void RMUI_RenderGamePage() //ns
 	UI::Begin("GameButtons", UI::WindowFlags::NoTitleBar + UI::WindowFlags::NoResize + UI::WindowFlags::NoMove + UI::WindowFlags::NoSavedSettings);
 	if (UI::ButtonColored("Store", 0, 0, 0, vec2(170*fRMUI_ARScale,80*fRMUI_ARScale)))
 	{
+		Audio::Play(sClick);
 		iRMUI_CurrentPage = RM_PAGE_STORE;
 	}	
 	if (UI::ButtonColored("Stats", 0, 0, 0, vec2(170*fRMUI_ARScale,80*fRMUI_ARScale)))
 	{
+		Audio::Play(sClick);
 		iRMUI_CurrentPage = RM_PAGE_STATS;
 	}		
 	if (UI::ButtonColored("Exit", 0, 0, 0, vec2(170*fRMUI_ARScale,80*fRMUI_ARScale)) && iMapsLoading < 1)
 	{
+		Audio::Play(sClick);
 		SG_Save(@rmgLoadedGame);
 		iRMUI_CurrentPage = RM_PAGE_MAIN;
 	}	
@@ -530,12 +552,14 @@ void RMUI_RenderStorePage() //ns
 	UI::Begin("StoreItems", UI::WindowFlags::NoTitleBar + UI::WindowFlags::NoResize + UI::WindowFlags::NoMove + UI::WindowFlags::NoSavedSettings);		
 	if (UI::ButtonColored("Reroll = $" + STORE_REROLL_PRICE, 0, 0, 0, vec2(400*fRMUI_ARScale,250*fRMUI_ARScale)) && rmgLoadedGame.iCash >= STORE_REROLL_PRICE)
 	{
+		Audio::Play(sReward);
 		rmgLoadedGame.AddCash(-STORE_REROLL_PRICE);
 		rmgLoadedGame.iRerolls++;
 	}
 	UI::SameLine();
 	if (UI::ButtonColored("Skip = $" + STORE_SKIP_PRICE, 0, 0, 0, vec2(400*fRMUI_ARScale,250*fRMUI_ARScale))&& rmgLoadedGame.iCash >= STORE_SKIP_PRICE)
 	{
+		Audio::Play(sReward);
 		rmgLoadedGame.AddCash(-STORE_SKIP_PRICE);		
 		rmgLoadedGame.iSkips++;
 	}		
@@ -557,6 +581,7 @@ void RMUI_RenderStorePage() //ns
 	UI::Begin("StoreBackButton", UI::WindowFlags::NoTitleBar + UI::WindowFlags::NoResize + UI::WindowFlags::NoMove + UI::WindowFlags::NoSavedSettings);		
 	if (UI::ButtonColored("Back", 0, 0, 0, vec2(150*fRMUI_ARScale,80*fRMUI_ARScale)))
 	{
+		Audio::Play(sClick);
 		SG_Save(@rmgLoadedGame);
 		iRMUI_CurrentPage = RM_PAGE_GAME;
 	}	

@@ -179,6 +179,8 @@ void UserBeatMap()
 	
 	SG_Save(@rmgLoadedGame);
 	
+	Audio::Play(sReward);
+	
 	//ExitToMainMenuPls();
 	//bRMUI_IsInMenu = true;	
 }
