@@ -39,7 +39,7 @@ int iRMUI_GameMode = GAMEMODE_REGULAR;
 
 void RMUI_Load()
 {
-	fRMUI_ARScale = GetARScale(Draw::GetWidth(), Draw::GetHeight(), 0.0);
+	fRMUI_ARScale = GetARScale(Draw::GetWidth(), Draw::GetHeight(), float(Draw::GetHeight())/float(Draw::GetWidth()));
 	int iFontScale = Math::Floor(72 * fRMUI_ARScale);
 	if(iFontScale > 72) {iFontScale = 72;}
 
@@ -64,7 +64,13 @@ void RMUI_Render()
 
 	int iWidth = Draw::GetWidth();
 	int iHeight = Draw::GetHeight();
-	fRMUI_ARScale = GetARScale(iWidth, iHeight, 0.0);
+	float fARValue = float(iHeight)/float(iWidth);
+	fRMUI_ARScale = GetARScale(iWidth, iHeight, fARValue);
+	//if (fARValue > 0.5)
+	//	fRMUI_ARScale = GetARScale(iWidth, iHeight, fARValue);
+	//else
+	//	fRMUI_ARScale = GetARScale(iWidth-iWidth/6, iHeight-iHeight/6, fARValue);
+	print(fARValue + " " + fRMUI_ARScale);
 
 	UI::PushStyleColor(UI::Col::WindowBg, vec4(0, 0, 0, 0));
 	UI::SetNextWindowPos(0, 0);
@@ -121,7 +127,7 @@ void RMUI_Render()
 	}
 
 	if (iRMUI_CurrentPage == RM_PAGE_GAME) 		{ RMUI_RenderGamePage();  return; }
-	if (iRMUI_CurrentPage == RM_PAGE_STORE) 	{ RMUI_RenderStorePage(); return; }
+	//if (iRMUI_CurrentPage == RM_PAGE_STORE) 	{ RMUI_RenderStorePage(); return; }
 
 	UI::PushStyleColor(UI::Col::WindowBg, vec4(0, 0, 0, 0));
 	UI::PushFont(fButton);
@@ -137,6 +143,7 @@ void RMUI_Render()
 	if (iRMUI_CurrentPage == RM_PAGE_STATS) 	{ RMUI_RenderStatsPage(); }	
 	if (iRMUI_CurrentPage == RM_PAGE_GAMEMODE) 	{ RMUI_RenderGamemodePage(); }	
 	if (iRMUI_CurrentPage == RM_PAGE_VICTORY) 	{ RMUI_RenderVictoryPage(); }	
+	if (iRMUI_CurrentPage == RM_PAGE_STORE) 	{ RMUI_RenderStorePage();}
 	UI::End();
 	UI::PopFont();
 	UI::PopStyleColor();
@@ -543,6 +550,43 @@ void RMUI_RenderSavePage()
 	}	
 }
 
+/*
+void RMUI_RenderStorePage()
+{
+	if (RMUI_RenderButton("Reroll = $" + STORE_REROLL_PRICE) && rmgLoadedGame.iCash >= STORE_REROLL_PRICE)
+	{
+		Audio::Play(sReward);
+		rmgLoadedGame.AddCash(-STORE_REROLL_PRICE);
+		rmgLoadedGame.iRerolls++;
+	}		
+	if (RMUI_RenderButton("Skip = $" + STORE_SKIP_PRICE) && rmgLoadedGame.iCash >= STORE_SKIP_PRICE)
+	{
+		Audio::Play(sReward);
+		rmgLoadedGame.AddCash(-STORE_SKIP_PRICE);		
+		rmgLoadedGame.iSkips++;
+	}		
+	
+	if (!rmgLoadedGame.bGameBeaten)
+	{
+		if (RMUI_RenderButton("Victory = $" + STORE_VICTORY_PRICE) && rmgLoadedGame.iCash >= STORE_VICTORY_PRICE)
+		{
+			rmgLoadedGame.AddCash(-STORE_VICTORY_PRICE);		
+			iRMUI_CurrentPage = RM_PAGE_VICTORY;
+			rmgLoadedGame.iSkips = 999;
+			rmgLoadedGame.iRerolls = 999;
+			rmgLoadedGame.bGameBeaten = true;
+			Audio::Play(sVictorySong);
+		}
+	}	
+	
+	if (RMUI_RenderButton("Back"))
+	{
+		SG_Save(@rmgLoadedGame);
+		iRMUI_CurrentPage = RM_PAGE_GAME;
+	}		
+}
+*/
+
 void RMUI_RenderStorePage() //ns
 {
 	UI::PushStyleColor(UI::Col::WindowBg, vec4(0, 0, 0, 0));
@@ -576,7 +620,7 @@ void RMUI_RenderStorePage() //ns
 		}
 	}	
 	UI::End();	
-	UI::SetNextWindowPos(0, 980*fRMUI_ARScale);
+	UI::SetNextWindowPos(0, Draw::GetHeight() - 100*fRMUI_ARScale);
 	UI::SetNextWindowSize(160*fRMUI_ARScale, 100*fRMUI_ARScale);
 	UI::Begin("StoreBackButton", UI::WindowFlags::NoTitleBar + UI::WindowFlags::NoResize + UI::WindowFlags::NoMove + UI::WindowFlags::NoSavedSettings);		
 	if (UI::ButtonColored("Back", 0, 0, 0, vec2(150*fRMUI_ARScale,80*fRMUI_ARScale)))

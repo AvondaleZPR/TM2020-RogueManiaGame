@@ -116,7 +116,15 @@ void Main()
 
 void OnKeyPress(bool down, VirtualKey key)
 {
-	if (!bGameStarted || !bRMUI_IsInMenu || iRMUI_CurrentPage != RM_PAGE_GAME || !down) { return; }
+	if (!bGameStarted || !bRMUI_IsInMenu || !down) { return; }
+
+	if(key == VirtualKey::Escape && (iRMUI_CurrentPage == RM_PAGE_STORE || iRMUI_CurrentPage == RM_PAGE_VICTORY || iRMUI_CurrentPage == RM_PAGE_STATS))
+	{
+		iRMUI_CurrentPage = RM_PAGE_GAME;
+		return;
+	}
+
+	if (iRMUI_CurrentPage != RM_PAGE_GAME) { return; }
 
 	if(key == VirtualKey::W)
 	{
