@@ -29,13 +29,16 @@ class RM_Map
 	int iMapType = MAP_CELL_TYPE_MAP;
 	int iCasinoCost;
 	
+	bool bDiscovered = true;
+	bool bCasinoWon = false;
+	
 	MapTag RandomTag1;
 	MapTag RandomTag2;
 	MapTag RandomTag3;
 	
 	RM_Map() { }
 	
-	RM_Map(int iX, int iY, int iReward, int iMapPackId = -1, const string &in sMapTags = "", int iMapType = MAP_CELL_TYPE_MAP)
+	RM_Map(int iX, int iY, int iReward, int iMapPackId = -1, const string &in sMapTags = "", int iMapType = MAP_CELL_TYPE_MAP, bool bDiscovered = true)
 	{
 		this.iRMUI_X = iX;
 		this.iRMUI_Y = iY;
@@ -44,6 +47,7 @@ class RM_Map
 		this.iMapPackId = iMapPackId;
 		this.sMapTags = sMapTags;
 		this.iMapType = iMapType;	
+		this.bDiscovered = bDiscovered;
 		
 		if (iMapType == MAP_CELL_TYPE_CHOICE)
 		{
@@ -52,6 +56,12 @@ class RM_Map
 				RandomTag1 = FindMapTagByName("Kacky");
 				RandomTag2 = FindMapTagByName("Trial");
 				RandomTag3 = FindMapTagByName("RPG");
+			}
+			else if(rmgLoadedGame.iGameMode == GAMEMODE_CAMPAIGN)
+			{
+				RandomTag1 = FindMapTagByName("Tech");
+				RandomTag2 = FindMapTagByName("Dirt");
+				RandomTag3 = FindMapTagByName("FullSpeed");
 			}
 			else
 			{
@@ -63,7 +73,7 @@ class RM_Map
 		
 		if (iMapType == MAP_CELL_TYPE_CASINO)
 		{
-			iCasinoCost = Math::Rand(200, 2000);
+			iCasinoCost = Math::Rand(100, 1000);
 		}
 	}	
 	
@@ -109,6 +119,15 @@ class RM_Map
 		this.iBestTime = json["iBestTime"];
 		this.iMapType = json["iMapType"];
 		this.iCasinoCost = json["iCasinoCost"];
+		
+		if (json["bCasinoWon"] !is null)
+		{
+			this.bCasinoWon = json["bCasinoWon"];
+		}
+		if (json["bDiscovered"] !is null)
+		{
+			this.bDiscovered = json["bDiscovered"];
+		}
 		
 		this.RandomTag1 = MapTag(json["RandomTag1"]);
 		this.RandomTag2 = MapTag(json["RandomTag2"]);
@@ -158,6 +177,8 @@ class RM_Map
 		json["iBestTime"] = iBestTime;
 		json["iMapType"] = iMapType;
 		json["iCasinoCost"] = iCasinoCost;
+		json["bCasinoWon"] = bCasinoWon;
+		json["bDiscovered"] = bDiscovered;
 		
 		json["RandomTag1"] = RandomTag1.ToJson();
 		json["RandomTag2"] = RandomTag2.ToJson();

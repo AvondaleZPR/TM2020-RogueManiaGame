@@ -2,9 +2,10 @@ RM_Game@ rmgLoadedGame;
 string sCurrentTrackUID = "";
 int iCurrentTrackI = -1;
 
-const int STORE_REROLL_PRICE = 250;
-const int STORE_SKIP_PRICE = 1250;
-const int STORE_VICTORY_PRICE = 25000;
+const int STORE_REROLL_PRICE = 200;
+const int STORE_SKIP_PRICE = 1000;
+const int STORE_VICTORY_PRICE = 30000;
+const int STORE_SKILLPOINT_PRICE = 350;
 
 const int GAMEMODE_REGULAR = 1;
 const int GAMEMODE_KACKY = 2;
@@ -15,6 +16,7 @@ class RM_Game
 	string sName;
 	int iDifficulty;
 	array<RM_Map@> tMaps;
+	array<RM_Skill@> tSkills;
 	int iGameMode;
 	bool bGameBeaten = false;
 	
@@ -24,6 +26,7 @@ class RM_Game
 	int iCash;
 	int iSkips;
 	int iRerolls;
+	int iSkillpoints = 0;
 	
 	int iStatsTotalCash = 0;
 	int iStatsMapsBeaten = 0;
@@ -33,6 +36,7 @@ class RM_Game
 	int iStatsCasinoLost = 0;
 	int iStatsSkipsUsed = 0;
 	int iStatsRerollsUsed = 0;
+	int iStatsSkillsUpgraded = 0;
 	
 	RM_Game (const string &in sName, int iDifficulty, int iGameMode = GAMEMODE_REGULAR) 
 	{ 
@@ -71,6 +75,19 @@ class RM_Game
 			tMaps.InsertLast(RM_Map(json["tMap" + i], i));
 		}
 		
+		if(json["tSkills"] !is null)
+		{
+			for(int i = 0; i < json["tSkills"]; i++)
+			{
+				tSkills.InsertLast(RM_Skill(json["tSkill" + i]));
+			}
+		}
+		
+		if(json["iSkillpoints"] !is null)
+		{
+			this.iSkillpoints = json["iSkillpoints"];
+		}
+		
 		this.iCameraPosX = json["iCameraPosX"];
 		this.iCameraPosY = json["iCameraPosY"];
 		
@@ -86,6 +103,10 @@ class RM_Game
 		this.iStatsCasinoLost = json["iStatsCasinoLost"];
 		this.iStatsSkipsUsed = json["iStatsSkipsUsed"];
 		this.iStatsRerollsUsed = json["iStatsRerollsUsed"];
+		if(json["iStatsSkillsUpgraded"] !is null)
+		{
+			this.iStatsSkillsUpgraded = json["iStatsSkillsUpgraded"];
+		}
 	}
 	
 	void AddCash(int iInc)
@@ -111,6 +132,14 @@ class RM_Game
 		{
 			json["tMap" + i] = tMaps[i].ToJson();
 		}
+		
+		json["tSkills"] = tSkills.Length;
+		for(int i = 0; i < tSkills.Length; i++)
+		{
+			json["tSkill" + i] = tSkills[i].ToJson();
+		}
+		
+		json["iSkillpoints"] = iSkillpoints;
 	
 		json["iCameraPosX"] = iCameraPosX;
 		json["iCameraPosY"] = iCameraPosY;
@@ -127,6 +156,7 @@ class RM_Game
 		json["iStatsCasinoLost"] = iStatsCasinoLost;
 		json["iStatsSkipsUsed"] = iStatsSkipsUsed;
 		json["iStatsRerollsUsed"] = iStatsRerollsUsed;
+		json["iStatsSkillsUpgraded"] = iStatsSkillsUpgraded;
 		
 		return json;
 	}
@@ -141,6 +171,12 @@ void UserStartNewGame()
 	{
 		rmgLoadedGame.AddCash(99999);
 	}
+	if (sSaveGameName == "skilledaf")
+	{
+		rmgLoadedGame.iSkillpoints = 69;
+	}	
+	
+	InitSkills();
 	
 	if (rmgLoadedGame.iGameMode == GAMEMODE_KACKY)
 	{
@@ -149,6 +185,11 @@ void UserStartNewGame()
 	else
 	{
 		AddNewRandomMap(0, 0, 100, 40, "");
+	}
+	
+	for(int i = 0; i < Math::Rand(5,10); i++)
+	{
+		AddNewRandomMap(Math::Rand(-10,10), Math::Rand(-10,10), RandomReward(), -1, "", false, false);
 	}
 	
 	SG_Save(@rmgLoadedGame);
@@ -188,7 +229,7 @@ void UserBeatMap()
 void UserClaimAMap(int iMapI)
 {
 	rmgLoadedGame.tMaps[iMapI].bClaimed = true;
-	rmgLoadedGame.AddCash(rmgLoadedGame.tMaps[iMapI].iReward);
+	rmgLoadedGame.AddCash(GetSkillBonus(rmgLoadedGame.tMaps[iMapI].iReward, RM_SKILL_MAP_REWARD_BONUS));
 	
 	int iMapX = rmgLoadedGame.tMaps[iMapI].iRMUI_X;
 	int iMapY = rmgLoadedGame.tMaps[iMapI].iRMUI_Y;
@@ -233,7 +274,16 @@ void UserLootedChest(int iMapI)
 {
 	rmgLoadedGame.tMaps[iMapI].bBeaten = true;
 	rmgLoadedGame.tMaps[iMapI].bClaimed = true;
-	rmgLoadedGame.AddCash(rmgLoadedGame.tMaps[iMapI].iReward);
+	rmgLoadedGame.AddCash(GetSkillBonus(rmgLoadedGame.tMaps[iMapI].iReward, RM_SKILL_CHEST_REWARD_BONUS));
+	
+	if(Math::Rand(0,100) <= 10)
+	{
+		rmgLoadedGame.iRerolls++;
+	}
+	if(Math::Rand(0,100) <= 25)
+	{
+		rmgLoadedGame.iSkillpoints++;
+	}
 	
 	rmgLoadedGame.iStatsLootedChests++;
 	
@@ -244,18 +294,43 @@ void UserPlayedCasino(int iMapI)
 {
 	rmgLoadedGame.tMaps[iMapI].bBeaten = true;
 	rmgLoadedGame.tMaps[iMapI].bClaimed = true;
-	rmgLoadedGame.AddCash(-rmgLoadedGame.tMaps[iMapI].iCasinoCost);
-	
 	rmgLoadedGame.iStatsCasinoPlayed++;
-	rmgLoadedGame.iStatsCasinoLost += rmgLoadedGame.tMaps[iMapI].iCasinoCost;
+	
+	if (Math::Rand(0,100) <= GetSkillBonus(10, RM_SKILL_CASINO_BONUS))
+	{
+		rmgLoadedGame.tMaps[iMapI].bCasinoWon = true;
+		rmgLoadedGame.AddCash(rmgLoadedGame.tMaps[iMapI].iCasinoCost*5);
+		rmgLoadedGame.iStatsCasinoWin += (rmgLoadedGame.tMaps[iMapI].iCasinoCost*5);
+		
+		Audio::Play(sReward);
+	}
+	else
+	{
+		rmgLoadedGame.tMaps[iMapI].bCasinoWon = false;
+		rmgLoadedGame.AddCash(-rmgLoadedGame.tMaps[iMapI].iCasinoCost);
+		rmgLoadedGame.iStatsCasinoLost += rmgLoadedGame.tMaps[iMapI].iCasinoCost;
+		
+		Audio::Play(sSkip);
+	}
+
 	
 	SG_Save(@rmgLoadedGame);
 }
+
+void Event_UserLoadedGame()
+{
+	InitSkills();
+}
 //-----------------------------------------------------------------------------------------------------------------------------------
 
-bool AddNewRandomMap(int iX, int iY, int iReward = 0, int iMapPackId = -1, string &in sTags = "", bool bCanBeARandomDeadEndType = false)
+bool AddNewRandomMap(int iX, int iY, int iReward = 0, int iMapPackId = -1, string &in sTags = "", bool bCanBeARandomDeadEndType = false, bool bDiscovered = true)
 {
-	if (MapExistsAtCoordinates(iX, iY)) { return false; }
+	int iExistingMapId = GetMapAtCoordinates(iX, iY);
+	if (iExistingMapId > -1) 
+	{
+		rmgLoadedGame.tMaps[iExistingMapId].bDiscovered = true;
+		return false; 
+	}
 
 	int iMapType = MAP_CELL_TYPE_MAP;
 	bool bIsADeadEnd = false;	
@@ -279,6 +354,11 @@ bool AddNewRandomMap(int iX, int iY, int iReward = 0, int iMapPackId = -1, strin
 		}
 	}
 	
+	if (iMapType == MAP_CELL_TYPE_CHOICE && rmgLoadedGame.iGameMode == GAMEMODE_CAMPAIGN)
+	{
+		iMapType = MAP_CELL_TYPE_MAP;
+	}
+	
 	if (rmgLoadedGame.iGameMode == GAMEMODE_KACKY)
 	{
 		if (Math::Rand(0,1) == 0)
@@ -290,12 +370,43 @@ bool AddNewRandomMap(int iX, int iY, int iReward = 0, int iMapPackId = -1, strin
 			sTags = "10"; //trial
 		}
 	}
+	
+	if (rmgLoadedGame.iGameMode == GAMEMODE_CAMPAIGN)
+	{
+		iMapPackId = 3559;
+	}
+	
+	if (rmgLoadedGame.tSkills[RM_SKILL_FAVORITE_STYLE].bLearned && Math::Rand(0, 100) <= 50)
+	{
+		sTags = tostring(FindMapTagByName(rmgLoadedGame.tSkills[RM_SKILL_FAVORITE_STYLE].sStyleName).ID);
+	}
 
-	rmgLoadedGame.tMaps.InsertLast(RM_Map(iX, iY, iReward, iMapPackId, sTags, iMapType));
+	rmgLoadedGame.tMaps.InsertLast(RM_Map(iX, iY, iReward, iMapPackId, sTags, iMapType, bDiscovered));
 
 	if(iMapType == MAP_CELL_TYPE_MAP)
 	{
 		PreloadRandomMap(CreateQueryURL(iMapPackId, sTags), rmgLoadedGame.tMaps.Length-1);
+	}
+	
+	if(bDiscovered && rmgLoadedGame.tSkills[RM_SKILL_MAP_PREVIEW].bLearned && Math::Rand(0,100) <= 75)
+	{
+		int iPx = iX;
+		int iPy = iY;
+		int iInc = Math::Rand(-1,1);
+		
+		if (iInc != 0)
+		{
+			if(Math::Rand(0,1) == 0)
+			{
+				iPx += iInc;
+			}
+			else
+			{
+				iPy += iInc;
+			}
+			
+			AddNewRandomMap(iPy, iPx, RandomReward(), -1, "", false, false);
+		}
 	}
 	
 	return bIsADeadEnd;
@@ -320,17 +431,17 @@ void RequestMapPreload(RM_Map@ rmMap, int iMapI)
 	}
 }
 
-bool MapExistsAtCoordinates(int iX, int iY)
+int GetMapAtCoordinates(int iX, int iY)
 {
 	for(int i = 0; i < rmgLoadedGame.tMaps.Length; i++)
 	{
 		if (rmgLoadedGame.tMaps[i] !is null && rmgLoadedGame.tMaps[i].iRMUI_X == iX && rmgLoadedGame.tMaps[i].iRMUI_Y == iY)
 		{
-			return true;
+			return i;
 		}
 	}
 	
-	return false;
+	return -1;
 }
 
 int RandomReward()
