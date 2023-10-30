@@ -42,10 +42,10 @@ int iRMUI_GameMode = GAMEMODE_REGULAR;
 void RMUI_Load()
 {
 	fRMUI_ARScale = GetARScale(Draw::GetWidth(), Draw::GetHeight(), float(Draw::GetHeight())/float(Draw::GetWidth()));
-	int iFontScale = Math::Floor(72 * fRMUI_ARScale);
+	int iFontScale = Math::Floor(42 * fRMUI_ARScale);
 	if(iFontScale > 72) {iFontScale = 72;}
 
-	@fButton = UI::LoadFont("data/fonts/Cinzel.ttf",  iFontScale, -1, -1, true, true, true);
+	@fButton = UI::LoadFont("data/fonts/MainFont.ttf",  iFontScale, -1, -1, true, true, true);
 	//@fCredit = UI::LoadFont("data/fonts/Cinzel.ttf", 42, -1, -1, true, true, true);
 	@tMapImagePlaceholder = UI::LoadTexture("data/images/mapimage_placeholder.jpg");
 	@tChest = UI::LoadTexture("data/images/chest.png");
@@ -56,8 +56,8 @@ void RMUI_Load()
 	ttSkills.InsertLast(UI::LoadTexture("data/images/skills/skill_3.png"));	
 	ttSkills.InsertLast(UI::LoadTexture("data/images/skills/skill_4.png"));	
 	ttSkills.InsertLast(UI::LoadTexture("data/images/skills/skill_5.png"));	
-	@tIntro = nvg::LoadTexture("data/images/intro.png", 0);
-	@tLogo = nvg::LoadTexture("data/images/logo2.png", 0);
+	@tIntro = nvg::LoadTexture("data/images/intro.png", nvg::TextureFlags::GenerateMipmaps);
+	@tLogo = nvg::LoadTexture("data/images/logo2.png", nvg::TextureFlags::Nearest);
 	@sVictorySong = Audio::LoadSample("data/sound/victory.wav");
 	@sClick = Audio::LoadSample("data/sound/click.wav");
 	@sClaim = Audio::LoadSample("data/sound/claim.wav");
@@ -290,6 +290,10 @@ void RMUI_RenderGamePage() //ns
 				{
 					UI::PushStyleColor(UI::Col::WindowBg, vec4(0.0, 0.0, 0.0, 0.8));
 				}
+				else if(!rmgLoadedGame.tMaps[i].bClaimed)
+				{
+					UI::PushStyleColor(UI::Col::WindowBg, vec4(0.7, 0.7, 0.1, 0.7));
+				}
 				else
 				{
 					UI::PushStyleColor(UI::Col::WindowBg, vec4(0.0, 0.4, 0.1, 0.7));
@@ -508,6 +512,7 @@ void RMUI_RenderCreditsPage()
 	RMUI_RenderText("Miss");
 	RMUI_RenderText("Greep");
 	RMUI_RenderText("Geekid");
+	RMUI_RenderText("Smooch");
 
 	if (RMUI_RenderButton("Back"))
 	{
@@ -649,6 +654,14 @@ void RMUI_RenderStatsPage()
 	{
 		RMUI_RenderText("Game Mode: Random Nadeo Maps");
 	}	
+	else if(rmgLoadedGame.iGameMode == GAMEMODE_TOTD)
+	{
+		RMUI_RenderText("Game Mode: Random Track of the Day Maps");
+	}
+	else
+	{
+		RMUI_RenderText("Game Mode: Unspecified");
+	}
 	
 	if(rmgLoadedGame.iDifficulty == 1)
 	{
@@ -682,6 +695,11 @@ void RMUI_RenderGamemodePage()
 	{
 		iRMUI_GameMode = GAMEMODE_CAMPAIGN;
 		iRMUI_CurrentPage = RM_PAGE_SETTINGS;
+	}	
+	if (RMUI_RenderButton("TOTD"))
+	{
+		iRMUI_GameMode = GAMEMODE_TOTD;
+		iRMUI_CurrentPage = RM_PAGE_SETTINGS;
 	}		
 	UI::PushStyleColor(UI::Col::Text, vec4(0.9, 0.0, 0.0, 1.0));
 	if (RMUI_RenderButton("Kacky"))
@@ -709,7 +727,7 @@ void RMUI_RenderSkillsPage() //ns
 {
 	for (int i = 1; i <= RM_SKILL_COUNT; i++)
 	{
-		if(i == RM_SKILL_FAVORITE_STYLE && rmgLoadedGame.iGameMode != GAMEMODE_REGULAR)
+		if(i == RM_SKILL_FAVORITE_STYLE && rmgLoadedGame.iGameMode != GAMEMODE_REGULAR && rmgLoadedGame.iGameMode != GAMEMODE_TOTD)
 		{
 			continue;
 		}
@@ -746,9 +764,9 @@ void RMUI_RenderSkillsPage() //ns
 					if (UI::Selectable("Dirt", rmgLoadedGame.tSkills[i].sStyleName == "Dirt", UI::SelectableFlags::None)) { rmgLoadedGame.tSkills[i].sStyleName = "Dirt"; }
 					if (UI::Selectable("Ice", rmgLoadedGame.tSkills[i].sStyleName == "Ice", UI::SelectableFlags::None)) { rmgLoadedGame.tSkills[i].sStyleName = "Ice"; }
 					if (UI::Selectable("Nascar", rmgLoadedGame.tSkills[i].sStyleName == "Nascar", UI::SelectableFlags::None)) { rmgLoadedGame.tSkills[i].sStyleName = "Nascar"; }
-					if (UI::Selectable("RPG", rmgLoadedGame.tSkills[i].sStyleName == "RPG", UI::SelectableFlags::None)) { rmgLoadedGame.tSkills[i].sStyleName = "RPG"; }
+					if (rmgLoadedGame.iGameMode != GAMEMODE_TOTD && UI::Selectable("RPG", rmgLoadedGame.tSkills[i].sStyleName == "RPG", UI::SelectableFlags::None)) { rmgLoadedGame.tSkills[i].sStyleName = "RPG"; }
 					if (UI::Selectable("LOL", rmgLoadedGame.tSkills[i].sStyleName == "LOL", UI::SelectableFlags::None)) { rmgLoadedGame.tSkills[i].sStyleName = "LOL"; }
-					if (UI::Selectable("Press Forward", rmgLoadedGame.tSkills[i].sStyleName == "Press Forward", UI::SelectableFlags::None)) { rmgLoadedGame.tSkills[i].sStyleName = "Press Forward"; }
+					if (rmgLoadedGame.iGameMode != GAMEMODE_TOTD && UI::Selectable("Press Forward", rmgLoadedGame.tSkills[i].sStyleName == "Press Forward", UI::SelectableFlags::None)) { rmgLoadedGame.tSkills[i].sStyleName = "Press Forward"; }
 					if (UI::Selectable("Grass", rmgLoadedGame.tSkills[i].sStyleName == "Grass", UI::SelectableFlags::None)) { rmgLoadedGame.tSkills[i].sStyleName = "Grass"; }
 					if (UI::Selectable("Transitional", rmgLoadedGame.tSkills[i].sStyleName == "Transitional", UI::SelectableFlags::None)) { rmgLoadedGame.tSkills[i].sStyleName = "Transitional"; }
 					if (UI::Selectable("Backwards", rmgLoadedGame.tSkills[i].sStyleName == "Backwards", UI::SelectableFlags::None)) { rmgLoadedGame.tSkills[i].sStyleName = "Backwards"; }
@@ -757,7 +775,7 @@ void RMUI_RenderSkillsPage() //ns
 					if (UI::Selectable("Bobsleigh", rmgLoadedGame.tSkills[i].sStyleName == "Bobsleigh", UI::SelectableFlags::None)) { rmgLoadedGame.tSkills[i].sStyleName = "Bobsleigh"; }
 					if (UI::Selectable("Sausage", rmgLoadedGame.tSkills[i].sStyleName == "Sausage", UI::SelectableFlags::None)) { rmgLoadedGame.tSkills[i].sStyleName = "Sausage"; }
 					if (UI::Selectable("Scenery", rmgLoadedGame.tSkills[i].sStyleName == "Scenery", UI::SelectableFlags::None)) { rmgLoadedGame.tSkills[i].sStyleName = "Scenery"; }
-					if (UI::Selectable("Endurance", rmgLoadedGame.tSkills[i].sStyleName == "Endurance", UI::SelectableFlags::None)) { rmgLoadedGame.tSkills[i].sStyleName = "Endurance"; }
+					if (rmgLoadedGame.iGameMode != GAMEMODE_TOTD && UI::Selectable("Endurance", rmgLoadedGame.tSkills[i].sStyleName == "Endurance", UI::SelectableFlags::None)) { rmgLoadedGame.tSkills[i].sStyleName = "Endurance"; }
 				
 					UI::EndCombo();
 				}

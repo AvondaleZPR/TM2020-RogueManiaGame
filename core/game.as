@@ -10,6 +10,7 @@ const int STORE_SKILLPOINT_PRICE = 350;
 const int GAMEMODE_REGULAR = 1;
 const int GAMEMODE_KACKY = 2;
 const int GAMEMODE_CAMPAIGN = 3;
+const int GAMEMODE_TOTD = 4;
 
 class RM_Game 
 {
@@ -179,6 +180,10 @@ void UserStartNewGame()
 	InitSkills();
 	
 	if (rmgLoadedGame.iGameMode == GAMEMODE_KACKY)
+	{
+		AddNewRandomMap(0, 0, 100);
+	}
+	else if (rmgLoadedGame.iGameMode == GAMEMODE_TOTD)
 	{
 		AddNewRandomMap(0, 0, 100);
 	}
@@ -354,7 +359,7 @@ bool AddNewRandomMap(int iX, int iY, int iReward = 0, int iMapPackId = -1, strin
 		}
 	}
 	
-	if (iMapType == MAP_CELL_TYPE_CHOICE && rmgLoadedGame.iGameMode == GAMEMODE_CAMPAIGN)
+	if (iMapType == MAP_CELL_TYPE_CHOICE && (rmgLoadedGame.iGameMode == GAMEMODE_CAMPAIGN || rmgLoadedGame.iGameMode == GAMEMODE_TOTD))
 	{
 		iMapType = MAP_CELL_TYPE_MAP;
 	}

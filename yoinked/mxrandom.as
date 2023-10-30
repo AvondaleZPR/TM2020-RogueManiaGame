@@ -89,6 +89,11 @@ string CreateQueryURL(int iMapPackID = -1, const string &in sMapTags = "")
 
 	// prevent loading non-Race maps (Royal, flagrush etc...)
 	url += "&mtype=TM_Race";
+	
+	if(rmgLoadedGame.iGameMode == GAMEMODE_TOTD)
+	{
+		url += "&mode=25";
+	}
 
 	return url;
 }
