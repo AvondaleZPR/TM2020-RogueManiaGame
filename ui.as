@@ -44,6 +44,7 @@ void RMUI_Load()
 	fRMUI_ARScale = GetARScale(Draw::GetWidth(), Draw::GetHeight(), float(Draw::GetHeight())/float(Draw::GetWidth()));
 	int iFontScale = Math::Floor(42 * fRMUI_ARScale);
 	if(iFontScale > 72) {iFontScale = 72;}
+	//print("font scale " + iFontScale);
 
 	@fButton = UI::LoadFont("data/fonts/MainFont.ttf",  iFontScale, -1, -1, true, true, true);
 	//@fCredit = UI::LoadFont("data/fonts/Cinzel.ttf", 42, -1, -1, true, true, true);
@@ -56,8 +57,8 @@ void RMUI_Load()
 	ttSkills.InsertLast(UI::LoadTexture("data/images/skills/skill_3.png"));	
 	ttSkills.InsertLast(UI::LoadTexture("data/images/skills/skill_4.png"));	
 	ttSkills.InsertLast(UI::LoadTexture("data/images/skills/skill_5.png"));	
-	@tIntro = nvg::LoadTexture("data/images/intro.png", nvg::TextureFlags::GenerateMipmaps);
-	@tLogo = nvg::LoadTexture("data/images/logo2.png", nvg::TextureFlags::Nearest);
+	@tIntro = nvg::LoadTexture("data/images/intro.png", 0);
+	@tLogo = nvg::LoadTexture("data/images/logo2.png", 0);
 	@sVictorySong = Audio::LoadSample("data/sound/victory.wav");
 	@sClick = Audio::LoadSample("data/sound/click.wav");
 	@sClaim = Audio::LoadSample("data/sound/claim.wav");
@@ -233,6 +234,11 @@ void RMUI_RenderGamePage() //ns
 		int iXPos = 960 + ((rmgLoadedGame.tMaps[i].iRMUI_X * 400) + (rmgLoadedGame.iCameraPosX * 100));
 		int iYPos = 540 - ((rmgLoadedGame.tMaps[i].iRMUI_Y * 400) + (rmgLoadedGame.iCameraPosY * 100));
 		
+		if(iXPos < -400 || iYPos < -400 || iXPos > Draw::GetWidth()+400 || iYPos > Draw::GetHeight()+400)
+		{
+			continue;
+		}
+
 		if (rmgLoadedGame.tMaps[i].iRMUI_AAS > 0)
 		{
 			rmgLoadedGame.tMaps[i].iRMUI_AAS -= 1;
@@ -336,11 +342,22 @@ void RMUI_RenderGamePage() //ns
 					}
 					if (!rmgLoadedGame.tMaps[i].bBeaten)
 					{
-						UI::SameLine();		
-						if (UI::ButtonColored("Reroll", 0.8, 0.7, 1.0) && rmgLoadedGame.iRerolls > 0)
+						UI::SameLine();	
+						if (!rmgLoadedGame.tMaps[i].bFreeSkip)
 						{
-							Audio::Play(sSkip);
-							UserRerollMap(i);
+							if (UI::ButtonColored("Reroll", 0.8, 0.7, 1.0) && rmgLoadedGame.iRerolls > 0)
+							{
+								Audio::Play(sSkip);
+								UserRerollMap(i);
+							}	
+						}
+						else
+						{
+							if(UI::ButtonColored("Free Reroll", 0.5, 0.9, 0.5))
+							{
+								Audio::Play(sSkip);
+								UserRerollMap(i, true);
+							}
 						}		
 						UI::SameLine();		
 						if (UI::ButtonColored("Skip", 0, 0.7, 1.0) && rmgLoadedGame.iSkips > 0)
@@ -348,6 +365,7 @@ void RMUI_RenderGamePage() //ns
 							Audio::Play(sSkip);
 							UserSkipMap(i);
 						}	
+
 					}
 				}
 				UI::TextWrapped("Reward: $" + GetSkillBonus(rmgLoadedGame.tMaps[i].iReward, RM_SKILL_MAP_REWARD_BONUS));

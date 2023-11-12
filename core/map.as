@@ -9,7 +9,8 @@ class RM_Map
 	bool bLoaded = false;
 	bool bBeaten = false;
 	bool bClaimed = false;
-	
+	bool bFreeSkip = false;
+
     CachedImage@ ciThumbnail;
     CachedImage@ ciMapImage;	
 	
@@ -100,7 +101,11 @@ class RM_Map
 	RM_Map(const Json::Value &in json, int iMapI)
 	{
 		this.bBeaten = json["bBeaten"];
-		this.bClaimed = json["bClaimed"];		
+		this.bClaimed = json["bClaimed"];	
+		if(json["bFreeSkip"] !is null)
+		{
+			this.bFreeSkip = json["bFreeSkip"];
+		}	
 	
 		this.iMapPackId = json["iMapPackId"];
 		this.sMapTags = json["sMapTags"];	
@@ -149,8 +154,6 @@ class RM_Map
 				bLoaded = true;
 			}			
 		}
-		
-		
 	}
 	
 	Json::Value ToJson()
@@ -158,7 +161,8 @@ class RM_Map
 		Json::Value json = Json::Object();
 
 		json["bBeaten"] = bBeaten;
-		json["bClaimed"] = bClaimed;		
+		json["bClaimed"] = bClaimed;
+		json["bFreeSkip"] = bFreeSkip;		
 	
 		if (miMapInfo !is null)
 		{

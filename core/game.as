@@ -248,11 +248,15 @@ void UserClaimAMap(int iMapI)
 	SG_Save(@rmgLoadedGame);
 }
 
-void UserRerollMap(int iMapI)
+void UserRerollMap(int iMapI, bool bFree = false)
 {
-	rmgLoadedGame.iRerolls -= 1;
+	if(!bFree)
+	{
+		rmgLoadedGame.iRerolls -= 1;
+	}
 	rmgLoadedGame.iStatsRerollsUsed += 1;
-	
+	rmgLoadedGame.tMaps[iMapI].bFreeSkip = false;
+
 	ChangeRandomMap(iMapI, rmgLoadedGame.tMaps[iMapI].iMapPackId, rmgLoadedGame.tMaps[iMapI].sMapTags);
 	
 	SG_Save(@rmgLoadedGame);

@@ -6,6 +6,8 @@ bool isLoadingPreload = false;
 bool isLoadingMapInfo = false;
 int iMapsLoading = 0;
 
+Date@ dPrepatchIceDate = Date(2022, 7, 1);
+
 void PreloadRandomMap(const string &in URL, int iMapI)
 {
 	startnew(PreloadRandomMapCoroutine, CoroutineURL(URL, iMapI));
@@ -64,6 +66,15 @@ void PreloadRandomMapCoroutine(ref@ Data)
 	
 	@preloadedMap = map;
 	rmgLoadedGame.tMaps[iMapI].LoadMapInfo(map);
+
+	if (CheckMapPrePatch(map))
+	{
+		rmgLoadedGame.tMaps[iMapI].bFreeSkip = true;
+	}
+	else
+	{
+		MXNadeoServicesGlobal::CheckMapFreeSkip(map.TrackUID, iMapI);
+	}
 }
 
 string CreateQueryURL(int iMapPackID = -1, const string &in sMapTags = "")
@@ -404,4 +415,168 @@ int GetCurrentMapPBTime()
 		} else time = -1;
 	}
 	return time;
+}
+
+// ExeBuild parser
+class ExeBuild {
+    int year;
+    int month;
+    int day;
+    string date;
+    int hour;
+    int min;
+    ExeBuild(const string &in exeBuild) {
+        date = exeBuild.SubStr(0, exeBuild.IndexOf("_"));
+        hour = Text::ParseInt(exeBuild.SubStr(exeBuild.IndexOf('_')+1, 2));
+        min = Text::ParseInt(exeBuild.SubStr(exeBuild.IndexOf('_')+4, 2));
+        year = Text::ParseInt(date.SubStr(0,4));
+        month = Text::ParseInt(date.SubStr(5,2));
+        day = Text::ParseInt(date.SubStr(8,2));
+    }
+}
+
+bool CheckMapPrePatch(MapInfo@ miMapInfo)
+{
+	for(int i = 0; i< miMapInfo.Tags.Length; i++)
+	{
+		if (miMapInfo.Tags[i].Name == "Ice")
+		{
+			ExeBuild@ ebMapDate = ExeBuild(miMapInfo.ExeBuild);
+ 			Date@ dMapDate = Date(ebMapDate.year, ebMapDate.month, ebMapDate.day);
+
+ 			if(dMapDate.isBefore(dPrepatchIceDate))
+ 			{
+ 				print("prepatch map detected");
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+namespace MXNadeoServicesGlobal
+{
+    bool APIDown = false;
+    bool APIRefresh = false;
+
+#if DEPENDENCY_NADEOSERVICES
+    void LoadNadeoLiveServices()
+    {
+        try {
+            APIRefresh = true;
+
+            CheckAuthentication();
+
+            APIRefresh = false;
+            APIDown = false;
+        } catch {
+            error("Failed to load NadeoLiveServices");
+            APIDown = true;
+        }
+    }
+
+    void CheckAuthentication()
+    {
+        NadeoServices::AddAudience("NadeoLiveServices");
+        while (!NadeoServices::IsAuthenticated("NadeoLiveServices")) {
+            yield();
+        }
+        trace("NadeoLiveServices authenticated");
+    }
+
+   
+    bool CheckIfMapExistsAsync(const string &in mapUid)
+    {
+        string url = NadeoServices::BaseURLLive()+"/api/token/map/"+mapUid;
+
+        Net::HttpRequest@ req = NadeoServices::Get("NadeoLiveServices", url);
+        req.Start();
+        while (!req.Finished()) {
+            yield();
+        }
+        auto res = Json::Parse(req.String());
+
+        if (res.GetType() != Json::Type::Object) {
+            if (res.GetType() == Json::Type::Array && res[0].GetType() == Json::Type::String) {
+                string errorMsg = res[0];
+                if (errorMsg.Contains("notFound")) return false;
+            }
+            error("NadeoServices - Error checking if map exists: " + req.String());
+            return false;
+        }
+
+        try {
+            string resMapUid = res["uid"];
+            return resMapUid == mapUid;
+        } catch {
+            return false;
+        }
+    }
+
+    bool CheckMapRecords(const string &in mapUid, int iMapI)
+    {
+    	string url = NadeoServices::BaseURLLive()+"/api/token/leaderboard/group/Personal_Best/map/"+mapUid+"/top?onlyWorld=true&length=10&offset=0";
+
+    	Net::HttpRequest@ req = NadeoServices::Get("NadeoLiveServices", url);
+        req.Start();
+        while (!req.Finished()) {
+            yield();
+        }
+        //print(req.String());
+        auto res = Json::Parse(req.String());
+    	
+        if (res.GetType() != Json::Type::Object || res.get_Length() < 1) {
+            return false;
+        }
+
+        return CheckMapRecordsJson(res, iMapI);
+    }
+
+    bool CheckMapRecordsJson(const Json::Value &in json, int iMapI)
+    {
+    	if(json["tops"][0]["top"].Length < 5)
+    	{
+    		print("low amount of finishers detected");
+    		return false;
+    	}
+
+    	if(json["tops"][0]["top"][0]["score"] > rmgLoadedGame.tMaps[iMapI].iTimeToBeat)
+    	{
+    		print("even world record doesnt have the at ReallyMad");
+    		return false;
+    	}
+
+    	return true;
+    }
+
+    bool IsMapFreeSkipable(const string &in mapUid, int iMapI)
+    {
+    	return !(CheckIfMapExistsAsync(mapUid) && CheckMapRecords(mapUid, iMapI));
+    }
+
+    void MapFreeSkipCoroutine(ref@ Data)
+	{
+		string mapUid = cast<CoroutineFreeSkip>(Data).mapUid;
+		int iMapI = cast<CoroutineFreeSkip>(Data).iMapI;
+
+		rmgLoadedGame.tMaps[iMapI].bFreeSkip = IsMapFreeSkipable(mapUid, iMapI);
+    }
+
+    void CheckMapFreeSkip(const string &in mapUid, int iMapI)
+	{ 
+	    startnew(MapFreeSkipCoroutine, CoroutineFreeSkip(mapUid, iMapI));
+	}
+
+	class CoroutineFreeSkip
+	{
+		string mapUid;
+		int iMapI;
+
+		CoroutineFreeSkip(const string &in mapUid, int iMapI) 
+		{ 
+			this.mapUid = mapUid;
+			this.iMapI = iMapI;
+		}
+	}
+#endif
 }
