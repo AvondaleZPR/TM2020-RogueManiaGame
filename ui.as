@@ -157,7 +157,7 @@ bool RMUI_RenderButton(const string &in sText)
 {
 	if (UI::ButtonColored(sText, 0, 0, 0, vec2(300*fRMUI_ARScale,150*fRMUI_ARScale)))
 	{
-		Audio::Play(sClick, gain = 0.5f);
+		Audio::Play(sClick,  0.2f);
 		return true;
 	}
 	
@@ -328,7 +328,7 @@ void RMUI_RenderGamePage() //ns
 					{
 						if (UI::ButtonColored("Play", 0.35, 0.7, 0.5) && iMapsLoading < 1)
 						{
-							Audio::Play(sClick, gain = 0.5f);
+							Audio::Play(sClick,  0.2f);
 							UserPlayAMap(i);
 						}
 					}
@@ -336,7 +336,7 @@ void RMUI_RenderGamePage() //ns
 					{
 						if (UI::ButtonColored("Claim", 0.35, 0.8, 0.5))
 						{
-							Audio::Play(sClaim, gain = 0.5f);
+							Audio::Play(sClaim,  0.2f);
 							UserClaimAMap(i);
 						}			
 					}
@@ -347,7 +347,7 @@ void RMUI_RenderGamePage() //ns
 						{
 							if (UI::ButtonColored("Reroll", 0.8, 0.7, 1.0) && rmgLoadedGame.iRerolls > 0)
 							{
-								Audio::Play(sSkip, gain = 0.5f);
+								Audio::Play(sSkip,  0.2f);
 								UserRerollMap(i);
 							}	
 						}
@@ -355,14 +355,14 @@ void RMUI_RenderGamePage() //ns
 						{
 							if(UI::ButtonColored("Free Reroll", 0.5, 0.9, 0.5))
 							{
-								Audio::Play(sSkip, gain = 0.5f);
+								Audio::Play(sSkip,  0.2f);
 								UserRerollMap(i, true);
 							}
 						}		
 						UI::SameLine();		
 						if (UI::ButtonColored("Skip", 0, 0.7, 1.0) && rmgLoadedGame.iSkips > 0)
 						{
-							Audio::Play(sSkip, gain = 0.5f);
+							Audio::Play(sSkip,  0.2f);
 							UserSkipMap(i);
 						}	
 
@@ -417,7 +417,7 @@ void RMUI_RenderGamePage() //ns
 					{
 						if (UI::ButtonColored("Collect", 0.35, 0.8, 0.5))
 						{
-							Audio::Play(sReward, gain = 0.5f);
+							Audio::Play(sReward,  0.2f);
 							UserLootedChest(i);
 						}	
 					}
@@ -461,23 +461,23 @@ void RMUI_RenderGamePage() //ns
 	UI::Begin("GameButtons", UI::WindowFlags::NoTitleBar + UI::WindowFlags::NoResize + UI::WindowFlags::NoMove + UI::WindowFlags::NoSavedSettings);
 	if (UI::ButtonColored("Store", 0, 0, 0, vec2(170*fRMUI_ARScale,80*fRMUI_ARScale)))
 	{
-		Audio::Play(sClick, gain = 0.5f);
+		Audio::Play(sClick,  0.2f);
 		iRMUI_CurrentPage = RM_PAGE_STORE;
 	}
 	if (UI::ButtonColored("Skills", 0, 0, 0, vec2(170*fRMUI_ARScale,80*fRMUI_ARScale)))
 	{
 		//InitSkills();
-		Audio::Play(sClick, gain = 0.5f);
+		Audio::Play(sClick,  0.2f);
 		iRMUI_CurrentPage = RM_PAGE_SKILLS;
 	}		
 	if (UI::ButtonColored("Stats", 0, 0, 0, vec2(170*fRMUI_ARScale,80*fRMUI_ARScale)))
 	{
-		Audio::Play(sClick, gain = 0.5f);
+		Audio::Play(sClick,  0.2f);
 		iRMUI_CurrentPage = RM_PAGE_STATS;
 	}		
 	if (UI::ButtonColored("Exit", 0, 0, 0, vec2(170*fRMUI_ARScale,80*fRMUI_ARScale)) && iMapsLoading < 1)
 	{
-		Audio::Play(sClick, gain = 0.5f);
+		Audio::Play(sClick,  0.2f);
 		SG_Save(@rmgLoadedGame);
 		iRMUI_CurrentPage = RM_PAGE_MAIN;
 	}	
@@ -603,20 +603,20 @@ void RMUI_RenderStorePage() //ns
 	UI::Begin("StoreItems", UI::WindowFlags::NoTitleBar + UI::WindowFlags::NoResize + UI::WindowFlags::NoMove + UI::WindowFlags::NoSavedSettings);		
 	if (UI::ButtonColored("Reroll = $" + STORE_REROLL_PRICE, 0, 0, 0, vec2(400*fRMUI_ARScale,250*fRMUI_ARScale)) && rmgLoadedGame.iCash >= STORE_REROLL_PRICE)
 	{
-		Audio::Play(sReward, gain = 0.5f);
+		Audio::Play(sReward,  0.2f);
 		rmgLoadedGame.AddCash(-STORE_REROLL_PRICE);
 		rmgLoadedGame.iRerolls++;
 	}
 	UI::SameLine();
 	if (UI::ButtonColored("Skip = $" + STORE_SKIP_PRICE, 0, 0, 0, vec2(400*fRMUI_ARScale,250*fRMUI_ARScale))&& rmgLoadedGame.iCash >= STORE_SKIP_PRICE)
 	{
-		Audio::Play(sReward, gain = 0.5f);
+		Audio::Play(sReward,  0.2f);
 		rmgLoadedGame.AddCash(-STORE_SKIP_PRICE);		
 		rmgLoadedGame.iSkips++;
 	}		
 	if (UI::ButtonColored("SkillPoint = $" + STORE_SKILLPOINT_PRICE, 0, 0, 0, vec2(500*fRMUI_ARScale,250*fRMUI_ARScale))&& rmgLoadedGame.iCash >= STORE_SKILLPOINT_PRICE)
 	{
-		Audio::Play(sReward, gain = 0.5f);
+		Audio::Play(sReward,  0.2f);
 		rmgLoadedGame.AddCash(-STORE_SKILLPOINT_PRICE);		
 		rmgLoadedGame.iSkillpoints++;
 	}		
@@ -630,7 +630,7 @@ void RMUI_RenderStorePage() //ns
 			rmgLoadedGame.iSkips = 999;
 			rmgLoadedGame.iRerolls = 999;
 			rmgLoadedGame.bGameBeaten = true;
-			Audio::Play(sVictorySong, gain = 0.5f);
+			Audio::Play(sVictorySong,  0.2f);
 		}
 	}	
 	UI::End();	
@@ -639,7 +639,7 @@ void RMUI_RenderStorePage() //ns
 	UI::Begin("StoreBackButton", UI::WindowFlags::NoTitleBar + UI::WindowFlags::NoResize + UI::WindowFlags::NoMove + UI::WindowFlags::NoSavedSettings);		
 	if (UI::ButtonColored("Back", 0, 0, 0, vec2(150*fRMUI_ARScale,80*fRMUI_ARScale)))
 	{
-		Audio::Play(sClick, gain = 0.5f);
+		Audio::Play(sClick,  0.2f);
 		SG_Save(@rmgLoadedGame);
 		iRMUI_CurrentPage = RM_PAGE_GAME;
 	}	
@@ -806,7 +806,7 @@ void RMUI_RenderSkillsPage() //ns
 
 		if (rmgLoadedGame.tSkills[i].iLevel < rmgLoadedGame.tSkills[i].iMaxLevel && UI::ButtonColored("Upgrade", 0.35, 0.7, 0.5) && rmgLoadedGame.iSkillpoints >= rmgLoadedGame.tSkills[i].iCost)
 		{
-			Audio::Play(sReward, gain = 0.5f);
+			Audio::Play(sReward,  0.2f);
 			rmgLoadedGame.iSkillpoints = rmgLoadedGame.iSkillpoints - rmgLoadedGame.tSkills[i].iCost;
 			UpgradeSkill(i);
 		}
@@ -822,7 +822,7 @@ void RMUI_RenderSkillsPage() //ns
 	UI::Begin("SkillsBackButton", UI::WindowFlags::NoTitleBar + UI::WindowFlags::NoResize + UI::WindowFlags::NoMove + UI::WindowFlags::NoSavedSettings);		
 	if (UI::ButtonColored("Back", 0, 0, 0, vec2(150*fRMUI_ARScale,80*fRMUI_ARScale)))
 	{
-		Audio::Play(sClick, gain = 0.5f);
+		Audio::Play(sClick,  0.2f);
 		SG_Save(@rmgLoadedGame);
 		iRMUI_CurrentPage = RM_PAGE_GAME;
 	}	
