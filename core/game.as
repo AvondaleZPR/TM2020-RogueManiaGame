@@ -225,7 +225,7 @@ void UserBeatMap()
 	
 	SG_Save(@rmgLoadedGame);
 	
-	Audio::Play(sReward);
+	Audio::Play(sReward,  0.2f);
 	
 	//ExitToMainMenuPls();
 	//bRMUI_IsInMenu = true;	
@@ -311,7 +311,7 @@ void UserPlayedCasino(int iMapI)
 		rmgLoadedGame.AddCash(rmgLoadedGame.tMaps[iMapI].iCasinoCost*5);
 		rmgLoadedGame.iStatsCasinoWin += (rmgLoadedGame.tMaps[iMapI].iCasinoCost*5);
 		
-		Audio::Play(sReward);
+		Audio::Play(sReward,  0.2f);
 	}
 	else
 	{
@@ -319,7 +319,7 @@ void UserPlayedCasino(int iMapI)
 		rmgLoadedGame.AddCash(-rmgLoadedGame.tMaps[iMapI].iCasinoCost);
 		rmgLoadedGame.iStatsCasinoLost += rmgLoadedGame.tMaps[iMapI].iCasinoCost;
 		
-		Audio::Play(sSkip);
+		Audio::Play(sSkip,  0.2f);
 	}
 
 	

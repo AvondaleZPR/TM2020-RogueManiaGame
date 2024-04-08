@@ -130,19 +130,19 @@ void OnKeyPress(bool down, VirtualKey key)
 
 	if (iRMUI_CurrentPage != RM_PAGE_GAME) { return; }
 
-	if(key == VirtualKey::W)
+	if(key == VirtualKey::W || key == VirtualKey::Up)
 	{
 		rmgLoadedGame.iCameraPosY -= 1;
 	}
-	if(key == VirtualKey::S)
+	if(key == VirtualKey::S || key == VirtualKey::Down)
 	{
 		rmgLoadedGame.iCameraPosY += 1;
 	}	
-	if(key == VirtualKey::A)
+	if(key == VirtualKey::A || key == VirtualKey::Left)
 	{
 		rmgLoadedGame.iCameraPosX += 1;
 	}
-	if(key == VirtualKey::D)
+	if(key == VirtualKey::D || key == VirtualKey::Right)
 	{
 		rmgLoadedGame.iCameraPosX -= 1;
 	}	
